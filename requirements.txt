@@ -3,3 +3,4 @@ Flask-PyMongo==2.3.0
 telethon==1.29.3
 pymongo==4.5.0
 python-dotenv==1.0.0
+gunicorn
