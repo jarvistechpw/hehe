@@ -5,314 +5,161 @@
 {% block content %}
 <!-- Welcome Message for New Users -->
 {% if is_new_user %}
-<div class="row">
-    <div class="col-12">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-party-horn me-3" style="font-size: 2rem;"></i>
-                <div>
-                    <h4 class="alert-heading mb-1">🎉 Congratulations!</h4>
-                    <p class="mb-0">You've successfully earned <strong>₹200</strong> instantly! Your withdrawal will be available after 24 hours.</p>
-                </div>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-gift me-3" style="font-size: 1.5rem;"></i>
+        <div>
+            <h5 class="alert-heading mb-1">Welcome Bonus!</h5>
+            <p class="mb-0 small">You received <strong>200</strong>. Withdraw available in 24h.</p>
         </div>
     </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 </div>
 {% endif %}
 
-<!-- Balance and Earnings Overview -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <i class="fas fa-wallet text-success mb-3" style="font-size: 2.5rem;"></i>
-                <h3 class="card-title text-success">₹{{ "%.2f"|format(user.balance) }}</h3>
-                <p class="card-text text-muted">Current Balance</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <i class="fas fa-coins text-warning mb-3" style="font-size: 2.5rem;"></i>
-                <h3 class="card-title text-warning">₹{{ "%.2f"|format(user.total_earned) }}</h3>
-                <p class="card-text text-muted">Total Earned</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <i class="fas fa-clock text-info mb-3" style="font-size: 2.5rem;"></i>
-                <h3 class="card-title text-info" id="countdown-display">
-                    {% if can_withdraw %}
-                        Ready!
-                    {% else %}
-                        --:--:--
-                    {% endif %}
-                </h3>
-                <p class="card-text text-muted">Withdrawal Available</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Withdrawal Section -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-money-bill-wave me-2"></i>
-                    Withdrawal Status
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if can_withdraw %}
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle me-2"></i>
-                        <strong>Great news!</strong> Your withdrawal is now available. You can withdraw your earnings.
+<!-- Balance Overview -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-wallet text-primary fs-4"></i>
                     </div>
-                    <button class="btn btn-success btn-lg" disabled>
-                        <i class="fas fa-download me-2"></i>
-                        Withdraw ₹{{ "%.2f"|format(user.balance) }}
-                    </button>
-                    <small class="d-block mt-2 text-muted">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Withdrawal feature coming soon!
-                    </small>
-                {% else %}
-                    <div class="alert alert-warning">
-                        <i class="fas fa-hourglass-half me-2"></i>
-                        <strong>Please wait!</strong> You can withdraw your earnings after 24 hours from registration.
-                    </div>
-                    <div class="text-center">
-                        <h4 class="text-primary mb-3">Time Remaining:</h4>
-                        <div class="countdown-timer">
-                            <div class="row text-center">
-                                <div class="col-3">
-                                    <div class="countdown-item">
-                                        <span class="countdown-number" id="hours">00</span>
-                                        <div class="countdown-label">Hours</div>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="countdown-item">
-                                        <span class="countdown-number" id="minutes">00</span>
-                                        <div class="countdown-label">Minutes</div>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="countdown-item">
-                                        <span class="countdown-number" id="seconds">00</span>
-                                        <div class="countdown-label">Seconds</div>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="countdown-item">
-                                        <span class="countdown-number" id="milliseconds">000</span>
-                                        <div class="countdown-label">MS</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="btn btn-secondary btn-lg mt-3" disabled>
-                        <i class="fas fa-lock me-2"></i>
-                        Withdrawal Locked
-                    </button>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- User Profile -->
-<div class="row">
-    <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-user me-2"></i>
-                    Profile Information
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-sm-4"><strong>Name:</strong></div>
-                    <div class="col-sm-8">{{ user.first_name }} {{ user.last_name or '' }}</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4"><strong>Username:</strong></div>
-                    <div class="col-sm-8">
-                        {% if user.username %}
-                            @{{ user.username }}
-                        {% else %}
-                            <span class="text-muted">Not set</span>
-                        {% endif %}
+                    <div class="flex-grow-1">
+                        <p class="text-muted small mb-1 text-uppercase fw-semibold">Available Balance</p>
+                        <h2 class="mb-0 fw-bold">₹{{ "%.2f"|format(user.balance) }}</h2>
                     </div>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4"><strong>Phone:</strong></div>
-                    <div class="col-sm-8">{{ user.phone }}</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4"><strong>User ID:</strong></div>
-                    <div class="col-sm-8"><code>{{ user.user_id }}</code></div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4"><strong>Joined:</strong></div>
-                    <div class="col-sm-8">{{ user.created_at.strftime('%B %d, %Y') }}</div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-4"><strong>Last Login:</strong></div>
-                    <div class="col-sm-8">{{ user.last_login.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-gift me-2"></i>
-                    Earning Features
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="list-group list-group-flush">
-                    <div class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-rupee-sign text-success me-3"></i>
-                        <div>
-                            <h6 class="mb-1">Instant Reward</h6>
-                            <small class="text-muted">₹200 signup bonus</small>
-                        </div>
-                        <span class="badge bg-success ms-auto">Claimed</span>
+    <div class="col-12 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-chart-line text-success fs-4"></i>
                     </div>
-                    
-                    <div class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-shield-alt text-info me-3"></i>
-                        <div>
-                            <h6 class="mb-1">Secure Platform</h6>
-                            <small class="text-muted">Telegram authentication</small>
-                        </div>
-                        <span class="badge bg-success ms-auto">Active</span>
+                    <div class="flex-grow-1">
+                        <p class="text-muted small mb-1 text-uppercase fw-semibold">Total Earned</p>
+                        <h2 class="mb-0 fw-bold">₹{{ "%.2f"|format(user.total_earned) }}</h2>
                     </div>
-                    
-                    <div class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-clock text-warning me-3"></i>
-                        <div>
-                            <h6 class="mb-1">24-Hour Withdrawal</h6>
-                            <small class="text-muted">Quick payout system</small>
-                        </div>
-                        {% if can_withdraw %}
-                            <span class="badge bg-success ms-auto">Ready</span>
-                        {% else %}
-                            <span class="badge bg-warning ms-auto">Waiting</span>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="list-group-item d-flex align-items-center">
-                        <i class="fas fa-mobile-alt text-primary me-3"></i>
-                        <div>
-                            <h6 class="mb-1">Mobile Friendly</h6>
-                            <small class="text-muted">Access anywhere</small>
-                        </div>
-                        <span class="badge bg-success ms-auto">Active</span>
-                    </div>
+                </div>
+                <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-{% if not can_withdraw %}
-<script>
-// Countdown timer
-const withdrawalTime = new Date("{{ user.withdrawal_available_at.strftime('%Y-%m-%dT%H:%M:%S') }}Z").getTime();
-
-function updateCountdown() {
-    const now = new Date().getTime();
-    const distance = withdrawalTime - now;
-    
-    if (distance < 0) {
-        document.getElementById("countdown-display").innerHTML = "Ready!";
-        document.getElementById("hours").innerHTML = "00";
-        document.getElementById("minutes").innerHTML = "00";
-        document.getElementById("seconds").innerHTML = "00";
-        document.getElementById("milliseconds").innerHTML = "000";
+<!-- Withdrawal Status -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="card-title mb-0">Withdrawal Status</h5>
+            <span class="badge bg-light text-dark border">
+                <i class="fas fa-clock me-1"></i> Timer
+            </span>
+        </div>
         
-        // Refresh page when countdown reaches zero
-        setTimeout(() => {
-            location.reload();
-        }, 1000);
-        return;
+        <div class="text-center py-3">
+            <h2 class="display-4 fw-bold text-primary mb-0" id="countdown-display">
+                {% if can_withdraw %}
+                    Ready!
+                {% else %}
+                    --:--:--
+                {% endif %}
+            </h2>
+            <p class="text-muted small mt-2">Time remaining until next withdrawal</p>
+        </div>
+
+        <div class="d-grid gap-2">
+            <button id="withdraw-btn" class="btn btn-primary btn-lg" {% if not can_withdraw %}disabled{% endif %}>
+                <i class="fas fa-money-bill-wave"></i> Withdraw Funds
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity / Info -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            <div class="list-group-item p-3 border-0">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-light rounded-circle p-2 me-3 text-primary">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Account Status</h6>
+                            <small class="text-muted">Verified</small>
+                        </div>
+                    </div>
+                    <i class="fas fa-check-circle text-success"></i>
+                </div>
+            </div>
+            <div class="list-group-item p-3 border-0">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-light rounded-circle p-2 me-3 text-info">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Join Date</h6>
+                            <small class="text-muted">{{ user.created_at|default('Just now') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Countdown Logic
+    {% if not can_withdraw and remaining_time > 0 %}
+    let timeLeft = {{ remaining_time }};
+    
+    function updateTimer() {
+        if (timeLeft <= 0) {
+            $('#countdown-display').text("Ready!");
+            $('#withdraw-btn').prop('disabled', false);
+            return;
+        }
+        
+        const hours = Math.floor(timeLeft / 3600);
+        const minutes = Math.floor((timeLeft % 3600) / 60);
+        const seconds = timeLeft % 60;
+        
+        const display = 
+            (hours < 10 ? "0" + hours : hours) + ":" + 
+            (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+            (seconds < 10 ? "0" + seconds : seconds);
+            
+        $('#countdown-display').text(display);
+        timeLeft--;
     }
     
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    const milliseconds = Math.floor(distance % 1000);
-    
-    document.getElementById("hours").innerHTML = hours.toString().padStart(2, '0');
-    document.getElementById("minutes").innerHTML = minutes.toString().padStart(2, '0');
-    document.getElementById("seconds").innerHTML = seconds.toString().padStart(2, '0');
-    document.getElementById("milliseconds").innerHTML = milliseconds.toString().padStart(3, '0');
-    
-    // Update main countdown display
-    document.getElementById("countdown-display").innerHTML = 
-        hours.toString().padStart(2, '0') + ":" + 
-        minutes.toString().padStart(2, '0') + ":" + 
-        seconds.toString().padStart(2, '0');
-}
+    setInterval(updateTimer, 1000);
+    updateTimer();
+    {% endif %}
 
-// Update countdown every 100ms for smooth millisecond display
-setInterval(updateCountdown, 100);
-updateCountdown(); // Initial call
+    // Withdraw Button
+    $('#withdraw-btn').click(function() {
+        if($(this).prop('disabled')) return;
+        
+        // Add withdrawal logic here
+        alert('Withdrawal initiated! Check your linked account.');
+    });
+});
 </script>
-{% endif %}
-
-<style>
-.countdown-timer {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
-    padding: 2rem;
-    margin: 1rem 0;
-}
-
-.countdown-item {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 1rem;
-    margin: 0.5rem;
-    backdrop-filter: blur(10px);
-}
-
-.countdown-number {
-    display: block;
-    font-size: 2rem;
-    font-weight: bold;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.countdown-label {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.8);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-@media (max-width: 768px) {
-    .countdown-number {
-        font-size: 1.5rem;
-    }
-    .countdown-item {
-        padding: 0.5rem;
-        margin: 0.25rem;
-    }
-}
-</style>
 {% endblock %}

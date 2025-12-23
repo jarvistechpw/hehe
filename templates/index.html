@@ -5,73 +5,67 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
-        <div class="card">
-            <div class="card-body text-center p-5">
-                <div class="mb-4">
-                    <i class="fas fa-coins" style="font-size: 4rem; color: #28a745;"></i>
-                </div>
-                <h1 class="card-title mb-4">Welcome to EarnTelegram</h1>
-                <p class="card-text text-muted mb-4">
-                    Login with your Telegram account and get <strong class="text-success">₹200 instantly!</strong>
-                    Withdraw your earnings after 24 hours of registration.
-                </p>
-                
-                <div class="alert alert-success mb-4">
-                    <i class="fas fa-gift me-2"></i>
-                    <strong>Special Offer:</strong> Get ₹200 bonus on first login!
-                </div>
-                
-                <div class="row text-start mb-4">
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-rupee-sign text-success me-3"></i>
-                            <div>
-                                <h6 class="mb-0">Instant Reward</h6>
-                                <small class="text-muted">₹200 on signup</small>
-                            </div>
-                        </div>
+        
+        <div class="text-center mb-5 mt-3">
+            <div class="login-icon mb-4">
+                <i class="fas fa-gift"></i>
+            </div>
+            <h1 class="fw-bold mb-3">EarnTelegram</h1>
+            <p class="text-muted lead">
+                The easiest way to earn rewards directly through your Telegram account.
+            </p>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3 text-primary">
+                        <i class="fas fa-wallet fa-lg"></i>
                     </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-clock text-warning me-3"></i>
-                            <div>
-                                <h6 class="mb-0">Quick Withdrawal</h6>
-                                <small class="text-muted">After 24 hours</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-shield-alt text-info me-3"></i>
-                            <div>
-                                <h6 class="mb-0">Secure Login</h6>
-                                <small class="text-muted">Telegram OTP</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-mobile-alt text-primary me-3"></i>
-                            <div>
-                                <h6 class="mb-0">Easy Access</h6>
-                                <small class="text-muted">Mobile friendly</small>
-                            </div>
-                        </div>
+                    <div>
+                        <h5 class="mb-1">Instant Bonus</h5>
+                        <p class="text-muted small mb-0">Get <strong>?200</strong> immediately upon signing up.</p>
                     </div>
                 </div>
                 
-                <a href="{{ url_for('login') }}" class="btn btn-success btn-lg pulse">
-                    <i class="fas fa-sign-in-alt me-2"></i>
-                    Login & Earn ₹200
-                </a>
-                
-                <div class="mt-4">
-                    <small class="text-muted">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Secure authentication via Telegram OTP
-                    </small>
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-warning bg-opacity-10 rounded-circle p-3 me-3 text-warning">
+                        <i class="fas fa-bolt fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Fast Withdrawal</h5>
+                        <p class="text-muted small mb-0">Withdraw your earnings after just 24 hours.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3 text-info">
+                        <i class="fas fa-shield-alt fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">Secure & Safe</h5>
+                        <p class="text-muted small mb-0">Protected by Telegram's secure login system.</p>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <div class="d-grid gap-3">
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                Start Earning Now
+                <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+            {% if session.user_id %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-lg">
+                Go to Dashboard
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="text-center mt-5">
+            <small class="text-muted">
+                By continuing, you agree to our Terms of Service and Privacy Policy.
+            </small>
         </div>
     </div>
 </div>
