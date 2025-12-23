@@ -18,8 +18,8 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Configuration
-API_ID = 29724770
-API_HASH = "aacf35e246b1e44f5acb0b090e7caa7f"
+API_ID = 1025907
+API_HASH = "452b0359b988148995f22ff0f4229750"
 MONGO_URI = "mongodb+srv://fusion:1234TheWrangler@fusion.qb0c2.mongodb.net/"
 
 # MongoDB setup
