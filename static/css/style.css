@@ -1,0 +1,75 @@
+/* Additional custom styles */
+.telegram-gradient {
+    background: linear-gradient(45deg, #0088cc, #229ed9);
+}
+
+.card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.status-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid white;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem 1rem;
+    }
+    
+    .btn-telegram {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}
